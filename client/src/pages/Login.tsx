@@ -20,10 +20,21 @@ const Login = () => {
   } = useForm<LoginFormData>();
 
   const onSubmit = async (data: LoginFormData) => {
-    setIsLoading(true);
-    await login(data.email, data.password);
-    setIsLoading(false);
-  };
+  setIsLoading(true);
+  await login(data.email, data.password);
+  setIsLoading(false);
+
+  const user = useAuthStore.getState().user;
+
+  if (user?.role === 'manager') {
+    navigate('/dashboard');
+  } else if (user?.role === 'engineer') {
+    navigate('/profile'); 
+  } else {
+    navigate('/');
+  }
+};
+
 
   return (
     <div>

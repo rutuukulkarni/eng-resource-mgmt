@@ -18,35 +18,42 @@ function App() {
 
   useEffect(() => {
     const initAuth = async () => {
-      await checkAuth();
-      setIsLoading(false);
+      await checkAuth(); // check token validity and set user
+      setIsLoading(false); // only after it's done, allow rendering
     };
 
     initAuth();
   }, [checkAuth]);
 
+  //  Wait for checkAuth() to finish before showing anything
   if (isLoading) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
 
-  return (
-    <Routes>
-      {!token ? (
+  // After loading: conditionally render correct routes
+  if (!token) {
+    return (
+      <Routes>
         <Route element={<AuthLayout />}>
           <Route path="/" element={<Login />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
         </Route>
-      ) : (
-        <Route element={<DashboardLayout />}>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/engineers" element={<Engineers />} />
-          <Route path="/projects" element={<Projects />} />
-          <Route path="/assignments" element={<Assignments />} />
-          <Route path="/profile" element={<Profile />} />
-        </Route>
-      )}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    );
+  }
+
+  return (
+    <Routes>
+      <Route element={<DashboardLayout />}>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/engineers" element={<Engineers />} />
+        <Route path="/projects" element={<Projects />} />
+        <Route path="/assignments" element={<Assignments />} />
+        <Route path="/profile" element={<Profile />} />
+      </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
