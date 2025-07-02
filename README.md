@@ -10,6 +10,7 @@ A full-stack application to manage engineering team assignments across projects.
 - **Assignment System**: Assign engineers to projects with capacity tracking
 - **Dashboard Views**: Different views for managers and engineers
 - **Search & Analytics**: Find resources and view utilization metrics
+- **Capacity Planning**: Prevent over-allocation with automatic capacity checks
 
 ## Tech Stack
 
@@ -33,19 +34,61 @@ A full-stack application to manage engineering team assignments across projects.
 - MongoDB
 - npm or yarn
 
-### Backend Setup
+### Quick Setup (macOS/Linux)
+```bash
+# Install all dependencies and start both servers
+npm run install-all && npm run dev
+```
+
+### Manual Setup
+
+#### Backend Setup
 ```bash
 cd server
 npm install
-npm run dev
+
+# Create environment variables
+echo "MONGODB_URI=mongodb://localhost:27017/eng-res-mgmt
+JWT_SECRET=supersecretkey
+JWT_EXPIRE=7d" > .env
+
+# Seed the database
+node seedData.js
+
+# Start the server
+node server.js
 ```
 
-### Frontend Setup
+#### Frontend Setup
 ```bash
 cd client
 npm install
 npm run dev
 ```
+
+### Windows Setup
+For Windows users, a setup script is provided:
+```
+setup_windows.bat
+```
+
+This script will check for required dependencies, install packages, set up environment variables, seed the database, and start both servers.
+
+### Default User Accounts
+
+After running the seed script, the following user accounts are available:
+
+#### Manager
+- Email: manager@example.com
+- Password: password123
+
+#### Engineers
+- Email: engineer1@example.com
+- Password: password123
+
+### Accessing the Application
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:5001
 
 ## AI Development Approach
 
@@ -80,3 +123,11 @@ The application includes seed data with:
 - 3-4 Projects with various requirements
 - 6-8 Assignments showing different scenarios
 - Mix of full-time and part-time engineers
+
+## Documentation
+
+For detailed API documentation, including all endpoints, data models, and functionalities, see [API_DOCUMENTATION.md](./API_DOCUMENTATION.md).
+
+## Repository
+
+This project is hosted on GitHub at [https://github.com/rutuukulkarni/eng-resource-mgmt](https://github.com/rutuukulkarni/eng-resource-mgmt).
