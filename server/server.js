@@ -17,9 +17,17 @@ const assignmentRoutes = require('./routes/assignments');
 // Initialize express
 const app = express();
 
+// CORS configuration
+const corsOptions = {
+  origin: process.env.FRONTEND_URL || '*',
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true,
+  optionsSuccessStatus: 204,
+};
+
 // Middleware
 app.use(express.json());
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(morgan('dev'));
 
 // Connect to MongoDB

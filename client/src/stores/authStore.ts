@@ -1,8 +1,9 @@
 import { create } from 'zustand';
 import axios from 'axios';
 
-// Set default base URL for axios
-axios.defaults.baseURL = 'http://localhost:5001';
+// Set default base URL for axios based on environment
+const API_URL = import.meta.env.VITE_API_URL || '';
+axios.defaults.baseURL = API_URL;
 
 interface User {
   id: string;

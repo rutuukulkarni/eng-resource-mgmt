@@ -8,7 +8,8 @@ import {
   User,
   Code,
   Briefcase,
-  Calendar
+  Calendar,
+  AlertCircle
 } from 'lucide-react';
 
 interface Engineer {
@@ -21,6 +22,7 @@ interface Engineer {
   department: string;
   title?: string;
   createdAt?: string;
+  availableCapacity?: number;
 }
 
 const Engineers = () => {
@@ -36,12 +38,38 @@ const Engineers = () => {
     const fetchEngineers = async () => {
       setIsLoading(true);
       try {
-        const response = await axios.get('/api/engineers', {
+        // First get basic engineer data
+        const engineersResponse = await axios.get('/api/engineers', {
           headers: {
             Authorization: `Bearer ${token}`
           }
         });
-        setEngineers(response.data.data || []);
+        
+        const engineersData = engineersResponse.data.data || [];
+        
+        // Then fetch capacity for each engineer
+        const engineersWithCapacity = await Promise.all(
+          engineersData.map(async (engineer: Engineer) => {
+            try {
+              const capacityResponse = await axios.get(`/api/engineers/${engineer._id}/capacity`, {
+                headers: {
+                  Authorization: `Bearer ${token}`
+                }
+              });
+              
+              return {
+                ...engineer,
+                availableCapacity: capacityResponse.data.data.availableCapacity,
+                totalAllocated: capacityResponse.data.data.totalAllocated
+              };
+            } catch (error) {
+              console.error(`Failed to get capacity for engineer ${engineer._id}`, error);
+              return engineer;
+            }
+          })
+        );
+        
+        setEngineers(engineersWithCapacity);
         setError(null);
       } catch (err) {
         console.error('Error fetching engineers:', err);
@@ -64,9 +92,13 @@ const Engineers = () => {
     return matchesSearch && matchesSeniority && matchesDepartment;
   });
 
-  const getAvailabilityClass = (maxCapacity: number) => {
-    if (maxCapacity >= 80) return 'bg-green-100 text-green-800';
-    if (maxCapacity >= 50) return 'bg-yellow-100 text-yellow-800';
+  const getAvailabilityClass = (engineer: Engineer) => {
+    if (!engineer.availableCapacity && engineer.availableCapacity !== 0) {
+      return 'bg-gray-100 text-gray-800';
+    }
+    
+    if (engineer.availableCapacity >= 50) return 'bg-green-100 text-green-800';
+    if (engineer.availableCapacity >= 20) return 'bg-yellow-100 text-yellow-800';
     return 'bg-red-100 text-red-800';
   };
 
@@ -190,9 +222,23 @@ const Engineers = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 text-xs rounded-full ${getAvailabilityClass(engineer.maxCapacity)}`}>
-                      {engineer.maxCapacity}%
+                    <span className={`px-2 py-1 text-xs rounded-full ${getAvailabilityClass(engineer)}`}>
+                      {engineer.availableCapacity !== undefined ? 
+                        `${engineer.availableCapacity}% free of ${engineer.maxCapacity}%` : 
+                        `${engineer.maxCapacity}% max`}
                     </span>
+                    {engineer.availableCapacity !== undefined && (
+                      <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                        <div 
+                          className={`h-2 rounded-full ${
+                            engineer.availableCapacity >= 50 ? 'bg-green-500' : 
+                            engineer.availableCapacity >= 20 ? 'bg-yellow-500' : 
+                            'bg-red-500'
+                          }`} 
+                          style={{ width: `${(engineer.availableCapacity / engineer.maxCapacity) * 100}%` }}
+                        ></div>
+                      </div>
+                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center text-sm text-gray-500">

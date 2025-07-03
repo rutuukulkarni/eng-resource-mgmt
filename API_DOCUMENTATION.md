@@ -484,12 +484,20 @@ Authorization: Bearer <token>
 
 ## Assignments API
 
+The Assignments API enables managers to allocate engineers to projects and track their workload. It includes various endpoints for creating, retrieving, updating, and deleting assignments.
+
 ### Get All Assignments
 
 - **URL**: `/api/assignments`
 - **Method**: `GET`
 - **Auth Required**: Yes
 - **Description**: Returns all assignments (managers) or only own assignments (engineers)
+- **Query Parameters**:
+  - `projectId`: Filter assignments by project
+  - `select`: Select specific fields (comma-separated)
+  - `sort`: Sort by field (prefix with - for descending)
+  - `page`: Page number for pagination
+  - `limit`: Results per page
 - **Success Response**: `200 OK`
   ```json
   {
@@ -504,32 +512,25 @@ Authorization: Bearer <token>
           "email": "engineer@example.com",
           "skills": ["JavaScript", "React"],
           "seniority": "mid",
-          "maxCapacity": 100,
-          "department": "Frontend",
-          "title": "Mid Frontend Engineer"
+          "department": "Frontend"
         },
         "projectId": {
           "_id": "project_id",
           "name": "Project Name",
-          "description": "Project description",
-          "status": "active",
-          "startDate": "date",
-          "endDate": "date"
+          "status": "active"
         },
         "allocationPercentage": 40,
-        "startDate": "date",
-        "endDate": "date",
+        "startDate": "2025-01-15T00:00:00.000Z",
+        "endDate": "2025-03-15T00:00:00.000Z",
         "role": "Developer",
-        "status": "active",
-        "createdAt": "date",
-        "hoursPerWeek": 16
+        "status": "active"
       },
-      // ...more assignments
+      // Additional assignments...
     ]
   }
   ```
 
-### Get Assignments for Engineer
+### Get Engineer Assignments
 
 - **URL**: `/api/assignments/engineer/:id`
 - **Method**: `GET`
@@ -550,27 +551,20 @@ Authorization: Bearer <token>
           "email": "engineer@example.com",
           "skills": ["JavaScript", "React"],
           "seniority": "mid",
-          "maxCapacity": 100,
-          "department": "Frontend",
-          "title": "Mid Frontend Engineer"
+          "department": "Frontend"
         },
         "projectId": {
           "_id": "project_id",
           "name": "Project Name",
-          "description": "Project description",
-          "status": "active",
-          "startDate": "date",
-          "endDate": "date"
+          "status": "active"
         },
         "allocationPercentage": 40,
-        "startDate": "date",
-        "endDate": "date",
+        "startDate": "2025-01-15T00:00:00.000Z",
+        "endDate": "2025-03-15T00:00:00.000Z",
         "role": "Developer",
-        "status": "active",
-        "createdAt": "date",
-        "hoursPerWeek": 16
+        "status": "active"
       },
-      // ...more assignments
+      // Additional assignments...
     ]
   }
   ```
@@ -594,25 +588,18 @@ Authorization: Bearer <token>
         "email": "engineer@example.com",
         "skills": ["JavaScript", "React"],
         "seniority": "mid",
-        "maxCapacity": 100,
-        "department": "Frontend",
-        "title": "Mid Frontend Engineer"
+        "department": "Frontend"
       },
       "projectId": {
         "_id": "project_id",
         "name": "Project Name",
-        "description": "Project description",
-        "status": "active",
-        "startDate": "date",
-        "endDate": "date"
+        "status": "active"
       },
       "allocationPercentage": 40,
-      "startDate": "date",
-      "endDate": "date",
+      "startDate": "2025-01-15T00:00:00.000Z",
+      "endDate": "2025-03-15T00:00:00.000Z",
       "role": "Developer",
-      "status": "active",
-      "createdAt": "date",
-      "hoursPerWeek": 16
+      "status": "active"
     }
   }
   ```
@@ -623,7 +610,7 @@ Authorization: Bearer <token>
 - **Method**: `POST`
 - **Auth Required**: Yes
 - **Permissions**: Manager role only
-- **Description**: Assigns an engineer to a project
+- **Description**: Creates a new assignment
 - **Request Body**:
   ```json
   {
@@ -647,11 +634,14 @@ Authorization: Bearer <token>
       "startDate": "2025-01-15T00:00:00.000Z",
       "endDate": "2025-03-15T00:00:00.000Z",
       "role": "Developer",
-      "status": "planned",
-      "createdAt": "date"
+      "status": "planned"
     }
   }
   ```
+- **Error Responses**:
+  - `400 Bad Request`: If the engineer doesn't have the required skills
+  - `400 Bad Request`: If the engineer doesn't have enough capacity
+  - `400 Bad Request`: Missing required fields
 
 ### Update Assignment
 
@@ -659,12 +649,12 @@ Authorization: Bearer <token>
 - **Method**: `PUT`
 - **Auth Required**: Yes
 - **Permissions**: Manager role only
-- **Description**: Updates an assignment
+- **Description**: Updates an existing assignment
 - **Request Body**: Any fields to update
   ```json
   {
-    "allocationPercentage": 60,
-    "endDate": "2025-04-15"
+    "allocationPercentage": 50,
+    "endDate": "2025-04-01"
   }
   ```
 - **Success Response**: `200 OK`
@@ -675,32 +665,23 @@ Authorization: Bearer <token>
       "_id": "assignment_id",
       "engineerId": {
         "_id": "engineer_id",
-        "name": "Engineer Name",
-        "email": "engineer@example.com",
-        "skills": ["JavaScript", "React"],
-        "seniority": "mid",
-        "maxCapacity": 100,
-        "department": "Frontend",
-        "title": "Mid Frontend Engineer"
+        "name": "Engineer Name"
       },
       "projectId": {
         "_id": "project_id",
-        "name": "Project Name",
-        "description": "Project description",
-        "status": "active",
-        "startDate": "date",
-        "endDate": "date"
+        "name": "Project Name"
       },
-      "allocationPercentage": 60,
+      "allocationPercentage": 50,
       "startDate": "2025-01-15T00:00:00.000Z",
-      "endDate": "2025-04-15T00:00:00.000Z",
+      "endDate": "2025-04-01T00:00:00.000Z",
       "role": "Developer",
-      "status": "planned",
-      "createdAt": "date",
-      "hoursPerWeek": 24
+      "status": "active"
     }
   }
   ```
+- **Error Responses**:
+  - `400 Bad Request`: If the engineer doesn't have enough capacity for the new allocation
+  - `404 Not Found`: If assignment doesn't exist
 
 ### Delete Assignment
 
@@ -716,6 +697,8 @@ Authorization: Bearer <token>
     "data": {}
   }
   ```
+- **Error Responses**:
+  - `404 Not Found`: If assignment doesn't exist
 
 ## Data Models
 

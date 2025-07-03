@@ -1,0 +1,26 @@
+{
+  "name": "engineering-resource-management-api",
+  "description": "Backend API for Engineering Resource Management System",
+  "env": {
+    "PORT": {
+      "description": "The port the server will run on",
+      "value": "5001"
+    },
+    "MONGODB_URI": {
+      "description": "MongoDB connection string",
+      "required": true
+    },
+    "JWT_SECRET": {
+      "description": "Secret key for JWT tokens",
+      "generator": "secret"
+    },
+    "JWT_EXPIRE": {
+      "description": "JWT token expiration time",
+      "value": "30d"
+    },
+    "NODE_ENV": {
+      "description": "Node environment",
+      "value": "production"
+    }
+  }
+}

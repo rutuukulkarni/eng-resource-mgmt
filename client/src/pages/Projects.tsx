@@ -10,6 +10,8 @@ import {
   Clock,
   TagIcon
 } from 'lucide-react';
+import AddProjectModal from '../components/AddProjectModal';
+import ProjectDetailsModal from '../components/ProjectDetailsModal';
 
 interface Project {
   _id: string;
@@ -24,32 +26,34 @@ interface Project {
 }
 
 const Projects = () => {
-  const { token } = useAuthStore();
+  const { token, user } = useAuthStore();
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('');
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+
+  const fetchProjects = async () => {
+    setIsLoading(true);
+    try {
+      const response = await axios.get('/api/projects', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      setProjects(response.data.data);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching projects:', err);
+      setError('Failed to load projects. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchProjects = async () => {
-      setIsLoading(true);
-      try {
-        const response = await axios.get('/api/projects', {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-        setProjects(response.data.data);
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching projects:', err);
-        setError('Failed to load projects. Please try again later.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchProjects();
   }, [token]);
 
@@ -89,10 +93,15 @@ const Projects = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Projects</h1>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center gap-2">
-          <Plus size={16} />
-          Add Project
-        </button>
+        {user?.role === 'manager' && (
+          <button 
+            onClick={() => setIsAddModalOpen(true)}
+            className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center gap-2"
+          >
+            <Plus size={16} />
+            Add Project
+          </button>
+        )}
       </div>
 
       <div className="flex flex-col md:flex-row gap-4">
@@ -134,7 +143,8 @@ const Projects = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProjects.map(project => (
-            <div key={project._id} className="border rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer">
+            <div key={project._id} className="border rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+            onClick={() => setSelectedProjectId(project._id)}>
               <div className="p-4 border-b">
                 <div className="flex justify-between items-start">
                   <h3 className="font-semibold text-lg">{project.name}</h3>
@@ -205,6 +215,23 @@ const Projects = () => {
             </div>
           ))}
         </div>
+      )}
+
+      {/* Add Project Modal */}
+      <AddProjectModal 
+        isOpen={isAddModalOpen} 
+        onClose={() => setIsAddModalOpen(false)} 
+        onProjectAdded={fetchProjects} 
+      />
+
+      {/* Project Details Modal */}
+      {selectedProjectId && (
+        <ProjectDetailsModal
+          projectId={selectedProjectId}
+          isOpen={!!selectedProjectId}
+          onClose={() => setSelectedProjectId(null)}
+          onUpdate={fetchProjects}
+        />
       )}
     </div>
   );
