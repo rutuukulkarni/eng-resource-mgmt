@@ -1,8 +1,9 @@
 import { create } from 'zustand';
 import axios from 'axios';
 
-// With Vite proxy, we can use relative URLs
-axios.defaults.baseURL = '';
+// Set default base URL for axios based on environment
+const API_URL = import.meta.env.VITE_API_URL || '';
+axios.defaults.baseURL = API_URL;
 
 interface User {
   id: string;
