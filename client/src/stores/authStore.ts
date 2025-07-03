@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import axios from 'axios';
 
-// Set default base URL for axios
-axios.defaults.baseURL = 'http://localhost:5001';
+// With Vite proxy, we can use relative URLs
+axios.defaults.baseURL = '';
 
 interface User {
   id: string;

@@ -11,6 +11,7 @@ This document provides comprehensive information about the frontend components, 
 5. [API Integration](#api-integration)
 6. [Authentication Flow](#authentication-flow)
 7. [Component Hierarchy](#component-hierarchy)
+8. [Assignment System Implementation](#assignment-system-implementation)
 
 ## Frontend Architecture
 
@@ -170,14 +171,85 @@ App
 - **Modal**: Dialog component for forms and confirmations
 - **Toaster**: Notification system for success/error messages
 
-## Responsive Design
+## Assignment System Implementation
 
-The application is fully responsive with breakpoints:
-- Mobile: < 640px
-- Tablet: 640px - 1024px
-- Desktop: > 1024px
+The assignment system is a core component of the Engineering Resource Management System, enabling managers to effectively allocate engineers to projects while tracking capacity utilization.
 
-Layout adjustments:
-- Sidebar collapses to bottom navigation on mobile
-- Tables convert to cards on small screens
-- Forms adjust field layout based on screen width
+### Key Features
+
+1. **Assign Engineers to Projects**:
+   - Select engineer with appropriate skills
+   - Select project that matches engineer's skills
+   - Specify allocation percentage (5-100%)
+   - Define start and end dates
+   - Assign a specific role for the engineer on the project
+
+2. **View Current Assignments**:
+   - Table view showing who's working on which projects
+   - Duration information (start date, end date, total days)
+   - Role information for each assignment
+   - Filter by engineer, project, or status
+
+3. **Capacity Tracking**:
+   - Visual progress bars showing allocation percentages
+   - Color-coded indicators (blue: low, green: moderate, yellow: high)
+   - Available capacity calculation for each engineer
+   - Warning indicators when assignments exceed available capacity
+
+### Components
+
+#### AddAssignmentModal.tsx
+
+The modal component for creating new assignments with these key features:
+
+- **Engineer selection** with skill filtering
+- **Project selection** with automatic filtering based on skill match
+- **Real-time capacity visualization** showing engineer's current allocation
+- **Validation** to prevent over-allocation of engineers
+- **Allocation slider** with percentage and hours per week calculation
+- **Date range selection** for assignment period
+
+#### ProjectDetailsModal.tsx
+
+Detailed project view with assignment management capabilities:
+
+- **Project information** display (skills, dates, team size)
+- **Assignment list** specific to the selected project
+- **Add/remove engineers** directly from the project view
+- **Capacity visualization** for each assigned engineer
+- **Team capacity tracker** showing progress toward desired team size
+
+### Integration Points
+
+1. **Engineers Page**:
+   - Enhanced to show real-time capacity information
+   - Visual indicators of current workload
+   - Available capacity percentage display
+
+2. **Projects Page**:
+   - Click on any project card to open ProjectDetailsModal
+   - Manage assignments directly from project context
+   - Visual team size progress indicator
+
+3. **Assignments Page**:
+   - Comprehensive view of all assignments
+   - Enhanced capacity visualization
+   - Duration calculation and display
+   - Assignment filtering capabilities
+
+### Implementation Details
+
+1. **Capacity Calculation**:
+   - Uses the backend `/api/engineers/:id/capacity` endpoint
+   - Considers date overlaps for accurate capacity calculation
+   - Updates in real-time when assignments change
+
+2. **Skill Matching**:
+   - Projects list filtered based on engineer's skills
+   - Warning indicators for skill mismatches
+   - Prevents assigning engineers to projects requiring skills they don't have
+
+3. **Visual Indicators**:
+   - Color-coded progress bars for capacity
+   - Allocation indicators (low/moderate/high)
+   - Warning indicators for overallocation

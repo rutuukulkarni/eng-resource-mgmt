@@ -11,6 +11,7 @@ import {
   TagIcon
 } from 'lucide-react';
 import AddProjectModal from '../components/AddProjectModal';
+import ProjectDetailsModal from '../components/ProjectDetailsModal';
 
 interface Project {
   _id: string;
@@ -32,6 +33,7 @@ const Projects = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
 
   const fetchProjects = async () => {
     setIsLoading(true);
@@ -141,7 +143,8 @@ const Projects = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProjects.map(project => (
-            <div key={project._id} className="border rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer">
+            <div key={project._id} className="border rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+            onClick={() => setSelectedProjectId(project._id)}>
               <div className="p-4 border-b">
                 <div className="flex justify-between items-start">
                   <h3 className="font-semibold text-lg">{project.name}</h3>
@@ -220,6 +223,16 @@ const Projects = () => {
         onClose={() => setIsAddModalOpen(false)} 
         onProjectAdded={fetchProjects} 
       />
+
+      {/* Project Details Modal */}
+      {selectedProjectId && (
+        <ProjectDetailsModal
+          projectId={selectedProjectId}
+          isOpen={!!selectedProjectId}
+          onClose={() => setSelectedProjectId(null)}
+          onUpdate={fetchProjects}
+        />
+      )}
     </div>
   );
 };
