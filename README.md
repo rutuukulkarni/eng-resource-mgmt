@@ -131,3 +131,44 @@ For detailed API documentation, including all endpoints, data models, and functi
 ## Repository
 
 This project is hosted on GitHub at [https://github.com/rutuukulkarni/eng-resource-mgmt](https://github.com/rutuukulkarni/eng-resource-mgmt).
+
+## Assignment System
+
+The Assignment System is a core feature that enables managers to effectively allocate engineers to projects and track capacity utilization.
+
+### Key Features
+
+- **Assign Engineers to Projects**: Select engineer, project, allocation percentage, and duration
+- **View Current Assignments**: See who's working on which project and for how long
+- **Capacity Tracking**: Visual indicators show each engineer's current workload
+
+### Implementation Details
+
+1. **Engineer Selection**:
+   - Filter engineers by skills
+   - See real-time capacity information
+   - Match engineers to projects based on required skills
+
+2. **Project Assignment**:
+   - Assign engineers directly from project details view
+   - Set allocation percentage (5-100%)
+   - Define assignment role and duration
+
+3. **Capacity Visualization**:
+   - Color-coded progress bars (blue: low, green: moderate, yellow: high)
+   - Prevent over-allocation with automatic capacity checks
+   - Track capacity at both engineer and project levels
+
+4. **Assignment Management**:
+   - View assignments from both project and engineer perspectives
+   - Remove engineers from projects when needed
+   - View timeline and duration information
+
+### Screenshots
+
+Here are some key views from the Assignment System:
+
+- **Assignments Page**: List view of all assignments with capacity indicators
+- **Add Assignment Modal**: Interface for creating new assignments with real-time capacity checks
+- **Project Details**: Manage team assignments directly from project view
+- **Engineers List**: View all engineers with their current capacity utilization

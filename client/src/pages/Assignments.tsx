@@ -10,6 +10,7 @@ import {
   Clock,
   Briefcase
 } from 'lucide-react';
+import AddAssignmentModal from '../components/AddAssignmentModal';
 
 interface Assignment {
   _id: string;
@@ -42,33 +43,34 @@ const Assignments = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('');
   const [filterProject, _setFilterProject] = useState<string>('');
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+  const fetchAssignments = async () => {
+    setIsLoading(true);
+    try {
+      let url = '/api/assignments';
+      
+      // If user is an engineer, only fetch their assignments
+      if (user?.role === 'engineer') {
+        url = `/api/assignments/engineer/${user.id}`;
+      }
+      
+      const response = await axios.get(url, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      setAssignments(response.data.data || []);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching assignments:', err);
+      setError('Failed to load assignments. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchAssignments = async () => {
-      setIsLoading(true);
-      try {
-        let url = '/api/assignments';
-        
-        // If user is an engineer, only fetch their assignments
-        if (user?.role === 'engineer') {
-          url = `/api/assignments/engineer/${user.id}`;
-        }
-        
-        const response = await axios.get(url, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-        setAssignments(response.data.data || []);
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching assignments:', err);
-        setError('Failed to load assignments. Please try again later.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchAssignments();
   }, [token, user]);
 
@@ -105,7 +107,10 @@ const Assignments = () => {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Resource Assignments</h1>
         {user?.role === 'manager' && (
-          <button className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center gap-2">
+          <button 
+            onClick={() => setIsAddModalOpen(true)} 
+            className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center gap-2"
+          >
             <Plus size={16} />
             Create Assignment
           </button>
@@ -198,6 +203,22 @@ const Assignments = () => {
                           `${Math.round((assignment.allocationPercentage / 100) * 40)} hours (${assignment.allocationPercentage}%)`}
                       </span>
                     </div>
+                    {/* Capacity visualization */}
+                    <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                      <div 
+                        className={`h-2 rounded-full ${
+                          assignment.allocationPercentage < 30 ? 'bg-blue-500' : 
+                          assignment.allocationPercentage < 70 ? 'bg-green-500' : 
+                          'bg-yellow-500'
+                        }`} 
+                        style={{ width: `${assignment.allocationPercentage}%` }}
+                      ></div>
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {assignment.allocationPercentage < 30 ? 'Low' : 
+                       assignment.allocationPercentage < 70 ? 'Moderate' : 
+                       'High'} allocation
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-500">
@@ -209,6 +230,12 @@ const Assignments = () => {
                         <Calendar size={14} className="mr-1" />
                         {new Date(assignment.endDate).toLocaleDateString()}
                       </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        {Math.ceil(
+                          (new Date(assignment.endDate).getTime() - new Date(assignment.startDate).getTime()) / 
+                          (1000 * 60 * 60 * 24)
+                        )} days
+                      </div>
                     </div>
                   </td>
                 </tr>
@@ -216,6 +243,15 @@ const Assignments = () => {
             </tbody>
           </table>
         </div>
+      )}
+      
+      {/* Add Assignment Modal */}
+      {isAddModalOpen && (
+        <AddAssignmentModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          onAssignmentAdded={fetchAssignments}
+        />
       )}
     </div>
   );

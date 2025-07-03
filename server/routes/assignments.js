@@ -12,11 +12,19 @@ router.get('/', protect, async (req, res) => {
   try {
     let query;
 
+    // Copy req.query
+    const reqQuery = { ...req.query };
+    
     // Engineers can only see their own assignments
     if (req.user.role === 'engineer') {
       query = Assignment.find({ engineerId: req.user.id });
     } else {
-      query = Assignment.find();
+      // If projectId query param is provided, filter by project
+      if (reqQuery.projectId) {
+        query = Assignment.find({ projectId: reqQuery.projectId });
+      } else {
+        query = Assignment.find();
+      }
     }
 
     // Execute query with populated references
@@ -127,63 +135,110 @@ router.get('/:id', protect, async (req, res) => {
 router.post('/', protect, authorize('manager'), async (req, res) => {
   try {
     const { engineerId, projectId, allocationPercentage, startDate, endDate, role } = req.body;
+    
+    console.log('\n=== Creating New Assignment ===');
+    console.log('Engineer ID:', engineerId);
+    console.log('Project ID:', projectId);
+    console.log('Allocation:', allocationPercentage);
+    console.log('Start Date:', startDate);
+    console.log('End Date:', endDate);
+    console.log('Role:', role);
 
     // Validate that engineer exists
     const engineer = await User.findById(engineerId);
     if (!engineer || engineer.role !== 'engineer') {
+      console.log('Error: Invalid engineer ID');
       return res.status(400).json({
         success: false,
         message: 'Invalid engineer ID'
       });
     }
+    
+    console.log('Engineer found:', engineer.name);
+    console.log('Engineer max capacity:', engineer.maxCapacity);
 
     // Validate that project exists
     const project = await Project.findById(projectId);
     if (!project) {
+      console.log('Error: Invalid project ID');
       return res.status(400).json({
         success: false,
         message: 'Invalid project ID'
       });
     }
+    
+    console.log('Project found:', project.name);
 
     // Check if the engineer has the required skills
     const hasRequiredSkill = project.requiredSkills.some(skill => 
       engineer.skills.includes(skill)
     );
 
+    console.log('Engineer skills:', engineer.skills);
+    console.log('Project required skills:', project.requiredSkills);
+    console.log('Has required skill:', hasRequiredSkill);
+
     if (!hasRequiredSkill) {
+      console.log('Error: Engineer does not have the required skills');
       return res.status(400).json({
         success: false,
         message: 'Engineer does not have the required skills for this project'
       });
     }
 
+    // Convert dates to Date objects for comparison
+    const startDateObj = new Date(startDate);
+    const endDateObj = new Date(endDate);
+    
+    console.log('Parsed Start Date:', startDateObj);
+    console.log('Parsed End Date:', endDateObj);
+
     // Check engineer's available capacity during the assignment period
     const overlappingAssignments = await Assignment.find({
       engineerId,
       $or: [
+        // Assignment starts before or on our start date and ends after or on our start date
         {
-          startDate: { $lte: new Date(startDate) },
-          endDate: { $gte: new Date(startDate) }
+          startDate: { $lte: startDateObj },
+          endDate: { $gte: startDateObj }
         },
+        // Assignment starts before or on our end date and ends after or on our end date
         {
-          startDate: { $lte: new Date(endDate) },
-          endDate: { $gte: new Date(endDate) }
+          startDate: { $lte: endDateObj },
+          endDate: { $gte: endDateObj }
         },
+        // Assignment starts after our start date and ends before our end date
         {
-          startDate: { $gte: new Date(startDate) },
-          endDate: { $lte: new Date(endDate) }
+          startDate: { $gt: startDateObj },
+          endDate: { $lt: endDateObj }
         }
       ]
     });
 
+    console.log('Overlapping assignments found:', overlappingAssignments.length);
+    
+    if (overlappingAssignments.length > 0) {
+      console.log('Overlapping assignments details:');
+      overlappingAssignments.forEach(assignment => {
+        console.log(`- ID: ${assignment._id}, Allocation: ${assignment.allocationPercentage}%, Start: ${assignment.startDate}, End: ${assignment.endDate}`);
+      });
+    }
+    
     const totalAllocated = overlappingAssignments.reduce((sum, assignment) => {
       return sum + assignment.allocationPercentage;
     }, 0);
 
+    console.log('Total allocated capacity:', totalAllocated);
+    console.log('Engineer max capacity:', engineer.maxCapacity);
+    
     const availableCapacity = engineer.maxCapacity - totalAllocated;
 
+    console.log('Available capacity:', availableCapacity);
+    console.log('Requested allocation:', allocationPercentage);
+    console.log('Is allocation possible:', allocationPercentage <= availableCapacity);
+
     if (allocationPercentage > availableCapacity) {
+      console.log('Error: Insufficient capacity');
       return res.status(400).json({
         success: false,
         message: `Engineer only has ${availableCapacity}% capacity available during this period`
@@ -195,16 +250,19 @@ router.post('/', protect, authorize('manager'), async (req, res) => {
       engineerId,
       projectId,
       allocationPercentage,
-      startDate,
-      endDate,
+      startDate: startDateObj,
+      endDate: endDateObj,
       role
     });
 
+    console.log('Assignment created successfully');
+    
     res.status(201).json({
       success: true,
       data: assignment
     });
   } catch (err) {
+    console.error('Error creating assignment:', err);
     res.status(400).json({
       success: false,
       message: err.message
@@ -230,30 +288,44 @@ router.put('/:id', protect, authorize('manager'), async (req, res) => {
     if (req.body.allocationPercentage && req.body.allocationPercentage !== assignment.allocationPercentage) {
       const engineer = await User.findById(assignment.engineerId);
       
+      // Get dates for the assignment (use updated dates if provided)
+      const startDate = req.body.startDate ? new Date(req.body.startDate) : assignment.startDate;
+      const endDate = req.body.endDate ? new Date(req.body.endDate) : assignment.endDate;
+      
       const overlappingAssignments = await Assignment.find({
         engineerId: assignment.engineerId,
         _id: { $ne: req.params.id }, // Exclude this assignment
         $or: [
+          // Assignment starts before and ends after our start date
           {
-            startDate: { $lte: assignment.startDate },
-            endDate: { $gte: assignment.startDate }
+            startDate: { $lte: startDate },
+            endDate: { $gte: startDate }
           },
+          // Assignment starts before and ends after our end date
           {
-            startDate: { $lte: assignment.endDate },
-            endDate: { $gte: assignment.endDate }
+            startDate: { $lte: endDate },
+            endDate: { $gte: endDate }
           },
+          // Assignment is entirely within our date range
           {
-            startDate: { $gte: assignment.startDate },
-            endDate: { $lte: assignment.endDate }
+            startDate: { $gte: startDate },
+            endDate: { $lte: endDate }
           }
         ]
       });
 
+      console.log('Overlapping assignments found (update):', overlappingAssignments.length);
+      
       const totalAllocated = overlappingAssignments.reduce((sum, assignment) => {
         return sum + assignment.allocationPercentage;
       }, 0);
 
+      console.log('Total allocated capacity (update):', totalAllocated);
+      console.log('Engineer max capacity (update):', engineer.maxCapacity);
+      
       const availableCapacity = engineer.maxCapacity - totalAllocated;
+
+      console.log('Available capacity (update):', availableCapacity);
 
       if (req.body.allocationPercentage > availableCapacity) {
         return res.status(400).json({
@@ -303,7 +375,7 @@ router.delete('/:id', protect, authorize('manager'), async (req, res) => {
       });
     }
 
-    await assignment.remove();
+    await assignment.deleteOne();
 
     res.status(200).json({
       success: true,

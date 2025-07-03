@@ -149,21 +149,38 @@ router.get('/:id/capacity', protect, async (req, res) => {
       });
     }
 
-    // Get active assignments
-    const now = new Date();
+    // Get active assignments (use current date as default or query params)
+    const targetDate = req.query.date ? new Date(req.query.date) : new Date();
+    
+    console.log('Checking capacity for engineer:', engineer.name);
+    console.log('Target date for capacity check:', targetDate);
+    
     const activeAssignments = await Assignment.find({
       engineerId: req.params.id,
-      startDate: { $lte: now },
-      endDate: { $gte: now }
+      startDate: { $lte: targetDate },
+      endDate: { $gte: targetDate }
     }).populate('projectId', 'name');
+    
+    console.log('Active assignments found:', activeAssignments.length);
+    console.log('Active assignments details:', JSON.stringify(activeAssignments.map(a => ({
+      project: a.projectId.name,
+      allocation: a.allocationPercentage,
+      start: a.startDate,
+      end: a.endDate
+    })), null, 2));
     
     // Calculate total allocation
     const totalAllocated = activeAssignments.reduce((sum, assignment) => {
       return sum + assignment.allocationPercentage;
     }, 0);
     
+    console.log('Total allocated capacity:', totalAllocated);
+    console.log('Engineer max capacity:', engineer.maxCapacity);
+    
     // Calculate available capacity
     const availableCapacity = engineer.maxCapacity - totalAllocated;
+
+    console.log('Available capacity:', availableCapacity);
 
     res.status(200).json({
       success: true,
@@ -175,10 +192,12 @@ router.get('/:id/capacity', protect, async (req, res) => {
         },
         activeAssignments,
         totalAllocated,
-        availableCapacity
+        availableCapacity,
+        checkedDate: targetDate
       }
     });
   } catch (err) {
+    console.error('Error in capacity check:', err);
     res.status(500).json({
       success: false,
       message: err.message
