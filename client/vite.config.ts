@@ -19,4 +19,16 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    // Ensure esbuild doesn't try to download platform-specific binaries during build
+    commonjsOptions: {
+      transformMixedEsModules: true,
+    },
+  },
+  optimizeDeps: {
+    esbuildOptions: {
+      // Ensure platform-specific optimizations are skipped
+      target: 'esnext',
+    }
+  }
 });
