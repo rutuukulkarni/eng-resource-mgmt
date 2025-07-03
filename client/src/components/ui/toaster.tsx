@@ -1,16 +1,12 @@
 import React from 'react';
-
 interface ToasterProps {
   position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
-  autoClose?: number;
+  // Removed: autoClose
 }
 
 export const Toaster: React.FC<ToasterProps> = ({
   position = 'top-right',
-  autoClose = 3000,
 }) => {
-  // This is a placeholder for the toaster component
-  // In a real app, this would manage and display toast notifications
   return (
     <div
       className={`fixed ${
@@ -29,4 +25,3 @@ export const Toaster: React.FC<ToasterProps> = ({
   );
 };
 
-export default Toaster;
