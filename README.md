@@ -173,4 +173,20 @@ Here are some key views from the Assignment System:
 - **Project Details**: Manage team assignments directly from project view
 - **Engineers List**: View all engineers with their current capacity utilization
 
-plesase check /screenshots folder
+#### Login Screen
+![Login Screen](./screenshots/Screenshot%202025-07-04%20121809.png)
+
+#### Dashboard
+![Dashboard](./screenshots/Screenshot%202025-07-04%20121840.png)
+
+#### Project Management
+![Project Management](./screenshots/Screenshot%202025-07-04%20121915.png)
+
+#### Engineer Assignments
+![Engineer Assignments](./screenshots/ss1.png)
+
+#### Resource Allocation
+![Resource Allocation](./screenshots/2.png)
+
+#### Capacity Management
+![Capacity Management](./screenshots/3.png)
