@@ -172,3 +172,5 @@ Here are some key views from the Assignment System:
 - **Add Assignment Modal**: Interface for creating new assignments with real-time capacity checks
 - **Project Details**: Manage team assignments directly from project view
 - **Engineers List**: View all engineers with their current capacity utilization
+
+plesase check /screenshots folder
