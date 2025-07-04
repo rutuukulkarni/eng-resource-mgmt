@@ -174,7 +174,10 @@ Here are some key views from the Assignment System:
 - **Engineers List**: View all engineers with their current capacity utilization
 
 #### Login Screen
-![Login Screen](./screenshots/Screenshot%202025-07-04%20121809.png)
+![Login Screen](./screenshots/Screenshot%202025-07-04%20at%2012.30.00%20PM.png)
+
+#### Registration Screen
+![Registration Screen](./screenshots/Screenshot%202025-07-04%20at%2012.30.56%20PM.png)
 
 #### Dashboard
 ![Dashboard](./screenshots/Screenshot%202025-07-04%20121840.png)
